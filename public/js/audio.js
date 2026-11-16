@@ -1,7 +1,7 @@
 // Música por tema y efectos de sonido.
 //   Música: assets/music/<tema>.mp3 (si no existe, simplemente no suena)
 //   Efecto de impacto: se genera con Web Audio, no necesita archivos.
-const MUSIC_VOLUME = 0.4;
+let musicVolume = 0.7; // 0..1, se ajusta en Settings
 
 let track = null;       // { id, audio }
 let musicMuted = false;
@@ -46,7 +46,7 @@ export function playMusic(themeId) {
   stopMusic();
   const audio = new Audio(`assets/music/${themeId}.mp3`);
   audio.loop = true;
-  audio.volume = MUSIC_VOLUME;
+  audio.volume = musicVolume;
   audio.muted = musicMuted;
   audio.addEventListener('error', () => { if (track?.audio === audio) track = null; });
   track = { id: themeId, audio };
@@ -60,9 +60,18 @@ export function stopMusic() {
   track = null;
 }
 
+let ducked = false;
+
 /** Baja el volumen de la música (pausa) o lo restaura. */
-export function duckMusic(ducked) {
-  if (track) track.audio.volume = ducked ? MUSIC_VOLUME * 0.3 : MUSIC_VOLUME;
+export function duckMusic(isDucked) {
+  ducked = isDucked;
+  if (track) track.audio.volume = ducked ? musicVolume * 0.3 : musicVolume;
+}
+
+/** Volumen de la música, de 0 a 1. */
+export function setMusicVolume(volume) {
+  musicVolume = volume;
+  duckMusic(ducked);
 }
 
 /** Sonido de impacto arcade al golpear la barra. intensity 0..1 sube el tono. */

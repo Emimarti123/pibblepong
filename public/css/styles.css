@@ -279,6 +279,25 @@ h3 {
 .grid-modes { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); }
 .grid-themes { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 
+/* Volumen de la música */
+.volume { display: flex; align-items: center; gap: 16px; max-width: 420px; }
+.volume output { font-family: var(--font-arcade); font-size: 0.7rem; color: var(--accent); min-width: 4.5em; }
+.volume input[type="range"] {
+  flex: 1;
+  height: 14px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(90deg, var(--accent) var(--fill, 70%), rgba(255, 255, 255, 0.08) var(--fill, 70%));
+  border: 3px solid var(--accent);
+  box-shadow: 3px 3px 0 #000;
+  cursor: pointer;
+}
+.volume input[type="range"]:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.volume input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 26px; background: #fff; border: 3px solid #000; }
+.volume input[type="range"]::-moz-range-thumb { width: 14px; height: 26px; background: #fff; border: 3px solid #000; border-radius: 0; }
+.volume input[type="range"]::-moz-range-track { background: transparent; }
+
 .card {
   position: relative;
   display: flex;
@@ -302,8 +321,19 @@ h3 {
   color: var(--accent);
   text-shadow: 0 0 8px var(--accent);
 }
-.card:disabled { cursor: not-allowed; }
-.card:disabled > :not(.lock) { opacity: 0.3; filter: grayscale(1); }
+/* Bloqueado: tarjeta negra con un ? blanco, sin mostrar qué es */
+.card.mystery { cursor: not-allowed; background: #000; border-color: rgba(255, 255, 255, 0.18); align-items: center; text-align: center; }
+.mystery-mark {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 70px;
+  font-family: var(--font-arcade);
+  font-size: 2.2rem;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+.grid-themes .mystery-mark { aspect-ratio: 16 / 9; font-size: 3rem; }
 .card canvas { width: 100%; height: auto; background: #000; }
 .card-title { line-height: 1.05; }
 .card-meta { color: var(--muted); }

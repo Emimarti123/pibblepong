@@ -40,5 +40,6 @@ export const getMode = (id) => MODES.find((m) => m.id === Number(id)) ?? MODES[0
 export const isModeUnlocked = (mode, bests) =>
   UNLOCK_ALL || !mode.unlock || (bests[mode.unlock.mode] ?? 0) >= mode.unlock.score;
 
+// Se menciona el número del modo anterior (no su nombre, que puede seguir oculto)
 export const modeUnlockText = (mode) =>
-  mode.unlock ? `Score ${mode.unlock.score} in “${getMode(mode.unlock.mode).name}”` : '';
+  mode.unlock ? `SCORE ${mode.unlock.score} IN MODE ${mode.unlock.mode}` : '';

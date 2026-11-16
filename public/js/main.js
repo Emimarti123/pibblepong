@@ -3,7 +3,7 @@ import * as game from './game.js';
 import { MODES, getMode, isModeUnlocked, modeUnlockText } from './modes.js';
 import { THEMES, getTheme, themeExists, isThemeUnlocked, themeUnlockText } from './themes.js';
 import { drawPibble, drawPaddle, Background, loadSprites } from './art.js';
-import { playMusic, stopMusic, setMusicMuted, duckMusic, playHit } from './audio.js';
+import { playMusic, stopMusic, setMusicMuted, setMusicVolume, duckMusic, playHit } from './audio.js';
 import { api } from './api.js';
 import {
   settings, saveSettings, resetKeys, keyLabel, TAG_RE, RESERVED_KEYS,
@@ -159,6 +159,7 @@ let listeningFor = null;
 
 function renderSettings() {
   $('#keys-error').textContent = '';
+  renderVolume();
   renderKeys();
   renderModes();
   renderPointsPicker();
@@ -223,11 +224,16 @@ function renderModes() {
     card.type = 'button';
     card.className = 'card' + (settings.mode === mode.id ? ' selected' : '');
     card.disabled = !unlocked;
+    if (!unlocked) {
+      card.classList.add('mystery');
+      card.innerHTML = `<span class="mystery-mark">?</span><span class="lock">${escapeHtml(modeUnlockText(mode))}</span>`;
+      grid.append(card);
+      continue;
+    }
     card.innerHTML = `
       <span class="badge">MODE ${mode.id}</span>
       <span class="card-title">${escapeHtml(mode.name)}</span>
-      ${best ? `<span class="card-meta">BEST ${best}</span>` : ''}
-      ${unlocked ? '' : `<span class="lock">LOCKED · ${escapeHtml(modeUnlockText(mode))}</span>`}`;
+      ${best ? `<span class="card-meta">BEST ${best}</span>` : ''}`;
     card.addEventListener('click', () => {
       settings.mode = mode.id;
       saveSettings();
@@ -236,6 +242,23 @@ function renderModes() {
     grid.append(card);
   }
 }
+
+// ---- Volumen de la música ----
+const volumeInput = $('#music-volume');
+
+function renderVolume() {
+  const percent = Math.round(settings.musicVolume * 100);
+  volumeInput.value = percent;
+  volumeInput.style.setProperty('--fill', `${percent}%`);
+  $('#music-volume-value').textContent = `${percent}%`;
+}
+
+volumeInput.addEventListener('input', () => {
+  settings.musicVolume = Number(volumeInput.value) / 100;
+  setMusicVolume(settings.musicVolume);
+  renderVolume();
+});
+volumeInput.addEventListener('change', saveSettings);
 
 // Puntos por golpe (1-5). Solo con 1 la partida cuenta para desbloqueos y leaderboard.
 function renderPointsPicker() {
@@ -279,12 +302,16 @@ function renderThemeGrid() {
     card.type = 'button';
     card.className = 'card' + (settings.theme === theme.id ? ' selected' : '');
     card.disabled = !unlocked;
+    if (!unlocked) {
+      card.classList.add('mystery');
+      card.innerHTML = `<span class="mystery-mark">?</span><span class="lock">${themeUnlockText(theme)}</span>`;
+      grid.append(card);
+      continue;
+    }
     const canvas = document.createElement('canvas');
     drawThemePreview(hiDpiContext(canvas, 240, 135), theme.id, 240, 135);
     card.append(canvas);
-    card.insertAdjacentHTML('beforeend', `
-      <span class="card-title">${theme.name}</span>
-      ${unlocked ? '' : `<span class="lock">LOCKED · ${themeUnlockText(theme)}</span>`}`);
+    card.insertAdjacentHTML('beforeend', `<span class="card-title">${theme.name}</span>`);
     card.addEventListener('click', () => {
       settings.theme = theme.id;
       saveSettings();
@@ -468,5 +495,6 @@ document.fonts?.load("16px 'Press Start 2P'").catch(() => {});
 document.fonts?.load("22px 'VT323'").catch(() => {});
 ensureValidSelections();
 setMuted(settings.musicMuted);
+setMusicVolume(settings.musicVolume);
 // Carga las imágenes que existan antes de mostrar el menú
 loadSprites(THEMES.map((t) => t.id)).then(() => show('menu'));

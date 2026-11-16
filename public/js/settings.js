@@ -13,6 +13,7 @@ const DEFAULTS = {
   theme: 'classic', // classic | chief | ashen | slayer
   lastTag: '',
   musicMuted: false,
+  musicVolume: 0.7, // 0..1
   pointsPerHit: 1, // solo con 1 cuentan los desbloqueos y el leaderboard
 };
 
