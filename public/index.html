@@ -1,38 +1,133 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong vs Pared</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #222;
-            margin: 0;
-            color: white;
-            font-family: sans-serif;
-            flex-direction: column;
-        }
-        canvas {
-            background-color: #000;
-            border: 2px solid #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        }
-        p {
-            margin-top: 15px;
-            color: #aaa;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PibblePong</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;900&family=Orbitron:wght@900&family=Press+Start+2P&family=Teko:wght@700&family=VT323&family=Zen+Dots&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-    <h2>Entrenamiento: Pong vs Pared</h2>
-    <!-- Canvas de 800x450 según los requerimientos del proyecto -->
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-    <p>Usa las teclas <b>W</b> / <b>S</b> o las <b>Flechas</b> para mover la paleta.</p>
+<body data-theme="classic">
+  <button class="mute-btn" id="mute-btn" type="button" aria-pressed="false" aria-label="Mute music" title="Mute music (M)">
+    <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none"/></svg>
+    <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M16 9l6 6M22 9l-6 6" fill="none"/></svg>
+  </button>
 
-    <script src="game.js"></script>
+  <main id="app">
+
+    <!-- ============ MAIN MENU ============ -->
+    <section class="screen" data-screen="menu">
+      <div class="stack">
+        <div class="title-row">
+          <canvas id="menu-pibble" class="hero-pibble" aria-hidden="true"></canvas>
+          <h1 class="logo" aria-label="PibblePong">
+            <span class="t" data-text="PIBBLE">PIBBLE</span>
+            <span class="t" data-text="PONG">PONG</span>
+          </h1>
+        </div>
+
+        <nav class="menu-buttons">
+          <button class="btn btn-primary" data-action="play">Play</button>
+          <button class="btn" data-action="settings">Settings</button>
+          <button class="btn" data-action="scores">High Scores</button>
+        </nav>
+
+        <p class="status-line" id="menu-status"></p>
+
+        <form class="player-bar" id="player-form" novalidate>
+          <label for="player-input">Player</label>
+          <input id="player-input" type="text" maxlength="12" autocomplete="off" spellcheck="false" placeholder="ENTER TAG">
+          <button type="submit" class="btn btn-sm">OK</button>
+        </form>
+        <p class="error" id="player-error" role="alert"></p>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="screen screen-scroll" data-screen="settings" hidden>
+      <div class="panel panel-wide">
+        <header class="panel-header">
+          <h2>Settings</h2>
+          <button class="btn btn-sm" data-action="menu">Back</button>
+        </header>
+
+        <h3>Controls</h3>
+        <div class="controls">
+          <div class="control">
+            <span>Move Up</span>
+            <button class="btn key-btn" data-bind="up"></button>
+          </div>
+          <div class="control">
+            <span>Move Down</span>
+            <button class="btn key-btn" data-bind="down"></button>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="reset-keys">Reset</button>
+        </div>
+        <p class="error" id="keys-error" role="alert"></p>
+        <p class="hint">Esc / P = pause · M = mute music</p>
+
+        <h3>Game Mode</h3>
+        <div class="grid grid-modes" id="mode-grid"></div>
+
+        <h3>Points per Hit</h3>
+        <div class="tabs points-picker" id="points-picker" role="radiogroup" aria-label="Points per hit"></div>
+        <p class="warning" id="points-warning">Only games at +1 per hit unlock content and count for the leaderboard.</p>
+
+        <h3>Theme</h3>
+        <div class="grid grid-themes" id="theme-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ HIGH SCORES ============ -->
+    <section class="screen screen-scroll" data-screen="scores" hidden>
+      <div class="panel panel-wide">
+        <header class="panel-header">
+          <h2>High Scores</h2>
+          <button class="btn btn-sm" data-action="menu">Back</button>
+        </header>
+        <div class="tabs" id="score-tabs" role="tablist"></div>
+        <div id="scores-table"></div>
+      </div>
+    </section>
+
+    <!-- ============ GAME ============ -->
+    <section class="screen" data-screen="game" hidden>
+      <div class="stage">
+        <!-- Canvas de 800x450 según los requerimientos del proyecto -->
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+        <div class="overlay" id="pause-overlay" hidden>
+          <div class="stack">
+            <h2 class="blink">Paused</h2>
+            <button class="btn btn-primary" data-action="resume">Resume</button>
+            <button class="btn" data-action="restart">Restart</button>
+            <button class="btn" data-action="quit">Quit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GAME OVER ============ -->
+    <section class="screen screen-scroll" data-screen="gameover" hidden>
+      <div class="panel panel-wide stack">
+        <div class="over-banner" id="over-banner">
+          <h2 class="over-title" id="over-title">Game Over</h2>
+        </div>
+        <canvas id="over-pibble" class="hero-pibble small" aria-hidden="true"></canvas>
+        <p class="over-score"><span id="over-score">0</span></p>
+        <p class="hint" id="over-best"></p>
+        <ul class="unlocks" id="over-unlocks"></ul>
+        <h3 id="over-board-title">Top 10</h3>
+        <div id="over-table"></div>
+        <div class="row">
+          <button class="btn" data-action="menu">Menu</button>
+          <button class="btn btn-primary" data-action="again">Play Again</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
